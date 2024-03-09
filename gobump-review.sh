@@ -10,12 +10,18 @@ git diff --quiet --exit-code --cached && exit 0 || true
 
 git config user.name "${GOBUMP_REVIEW_NAME:-gobump-review}"
 git config user.email "${GOBUMP_REVIEW_EMAIL:-gobump-review@example.com}"
+
+if [[ -n "${GOBUMP_REVIEW_FILE_HASH:-}" ]]; then
+  change_id="I$(git hash-object "${GOBUMP_REVIEW_FILE_HASH:-go.mod}")"
+else
+  change_id="I$(git diff --cached | grep '^+' | git hash-object --stdin)"
+fi
 git commit -m "
 ${GOBUMP_REVIEW_MESSAGE_SUBJECT:-}
 
 $(cat "${GOBUMP_REVIEW_MESSAGE_BODY_FILE:-/dev/null}")
 
-Change-Id: I$(git hash-object "${GOBUMP_REVIEW_FILE_HASH:-go.mod}")
+Change-Id: ${change_id}
 "
 
 push_options=()
